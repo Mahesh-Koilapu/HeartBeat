@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const roles = ['admin', 'doctor', 'patient'];
+const roles = ['admin', 'doctor', 'user'];
 
 const userSchema = new mongoose.Schema(
   {
@@ -28,7 +28,7 @@ const userSchema = new mongoose.Schema(
     role: {
       type: String,
       enum: roles,
-      default: 'patient',
+      default: 'user',
     },
     isActive: {
       type: Boolean,

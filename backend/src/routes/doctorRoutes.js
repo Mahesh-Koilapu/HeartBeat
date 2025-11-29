@@ -5,9 +5,9 @@ const {
   updateAvailability,
   updateProfile,
   listAppointments,
-  listPatients,
+  listUsers,
   updateAppointmentStatus,
-  getPatientDetails,
+  getUserDetails,
 } = require('../controllers/doctorController');
 
 const router = express.Router();
@@ -18,8 +18,8 @@ router.get('/dashboard', getDashboardOverview);
 router.put('/availability', updateAvailability);
 router.put('/profile', updateProfile);
 router.get('/appointments', listAppointments);
-router.get('/patients', listPatients);
+router.get('/users', listUsers);
 router.patch('/appointments/:appointmentId', updateAppointmentStatus);
-router.get('/patients/:patientId', getPatientDetails);
+router.get('/users/:userId', getUserDetails);
 
 module.exports = router;

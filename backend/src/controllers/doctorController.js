@@ -1,6 +1,6 @@
 const DoctorProfile = require('../models/DoctorProfile');
 const Appointment = require('../models/Appointment');
-const PatientProfile = require('../models/PatientProfile');
+const UserProfile = require('../models/UserProfile');
 const { User } = require('../models/User');
 
 const getDashboardOverview = async (req, res) => {
@@ -9,7 +9,7 @@ const getDashboardOverview = async (req, res) => {
 
     const [profile, appointments] = await Promise.all([
       DoctorProfile.findOne({ user: doctorId }),
-      Appointment.find({ doctor: doctorId }).populate('patient', 'name email role').sort({ scheduledDate: 1 }),
+      Appointment.find({ doctor: doctorId }).populate('user', 'name email role').sort({ scheduledDate: 1 }),
     ]);
 
     const pending = appointments.filter((appt) => appt.status === 'pending').length;
@@ -43,7 +43,7 @@ const listAppointments = async (req, res) => {
     }
 
     const appointments = await Appointment.find(query)
-      .populate('patient', 'name email role')
+      .populate('user', 'name email role')
       .sort({ scheduledDate: 1, createdAt: -1 });
 
     res.json(appointments);
@@ -52,31 +52,31 @@ const listAppointments = async (req, res) => {
   }
 };
 
-const listPatients = async (req, res) => {
+const listUsers = async (req, res) => {
   try {
     const doctorId = req.user._id;
 
     const appointments = await Appointment.find({ doctor: doctorId })
-      .populate('patient', 'name email role')
+      .populate('user', 'name email role')
       .sort({ createdAt: -1 });
 
-    const uniquePatients = [];
+    const uniqueUsers = [];
     const seen = new Set();
 
     appointments.forEach((appointment) => {
-      const patient = appointment.patient;
-      if (patient && !seen.has(String(patient._id))) {
-        seen.add(String(patient._id));
-        uniquePatients.push({
-          patient,
+      const appointmentUser = appointment.user;
+      if (appointmentUser && !seen.has(String(appointmentUser._id))) {
+        seen.add(String(appointmentUser._id));
+        uniqueUsers.push({
+          user: appointmentUser,
           lastAppointment: appointment,
         });
       }
     });
 
-    res.json(uniquePatients);
+    res.json(uniqueUsers);
   } catch (error) {
-    res.status(500).json({ message: 'Failed to load patients', error: error.message });
+    res.status(500).json({ message: 'Failed to load users', error: error.message });
   }
 };
 
@@ -172,22 +172,22 @@ const updateAppointmentStatus = async (req, res) => {
   }
 };
 
-const getPatientDetails = async (req, res) => {
+const getUserDetails = async (req, res) => {
   try {
-    const { patientId } = req.params;
+    const { userId } = req.params;
 
-    const profile = await PatientProfile.findOne({ user: patientId }).populate('user', 'name email role');
+    const profile = await UserProfile.findOne({ user: userId }).populate('user', 'name email role');
     if (!profile) {
-      return res.status(404).json({ message: 'Patient not found' });
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    const appointments = await Appointment.find({ patient: patientId, doctor: req.user._id })
+    const appointments = await Appointment.find({ user: userId, doctor: req.user._id })
       .sort({ createdAt: -1 })
       .limit(20);
 
     res.json({ profile, appointments });
   } catch (error) {
-    res.status(500).json({ message: 'Failed to load patient details', error: error.message });
+    res.status(500).json({ message: 'Failed to load user details', error: error.message });
   }
 };
 
@@ -196,7 +196,7 @@ module.exports = {
   updateAvailability,
   updateProfile,
   listAppointments,
-  listPatients,
+  listUsers,
   updateAppointmentStatus,
-  getPatientDetails,
+  getUserDetails,
 };

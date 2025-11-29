@@ -17,7 +17,7 @@ const notificationSchema = new mongoose.Schema(
       enum: ['email', 'sms', 'whatsapp', 'in-app'],
       default: 'in-app',
     },
-    triggerSource: { type: String, enum: ['admin', 'doctor', 'patient', 'system'] },
+    triggerSource: { type: String, enum: ['admin', 'doctor', 'user', 'system'] },
   },
   { timestamps: true }
 );

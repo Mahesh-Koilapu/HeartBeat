@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const { User } = require('../models/User');
 const DoctorProfile = require('../models/DoctorProfile');
-const PatientProfile = require('../models/PatientProfile');
+const UserProfile = require('../models/UserProfile');
 const { signToken } = require('../utils/generateToken');
 
 const buildUserResponse = (user) => ({
@@ -35,7 +35,7 @@ const register = async (req, res) => {
     name,
     email,
     password,
-    role = 'patient',
+    role = 'user',
     specialization,
     experience,
     education,
@@ -73,8 +73,8 @@ const register = async (req, res) => {
       });
     }
 
-    if (role === 'patient') {
-      await PatientProfile.create({
+    if (role === 'user') {
+      await UserProfile.create({
         user: user._id,
         diseaseType,
         symptoms,
@@ -146,8 +146,8 @@ const getProfile = async (req, res) => {
     if (user.role === 'doctor') {
       profileDetails = await DoctorProfile.findOne({ user: user._id });
     }
-    if (user.role === 'patient') {
-      profileDetails = await PatientProfile.findOne({ user: user._id });
+    if (user.role === 'user') {
+      profileDetails = await UserProfile.findOne({ user: user._id });
     }
 
     return res.json({

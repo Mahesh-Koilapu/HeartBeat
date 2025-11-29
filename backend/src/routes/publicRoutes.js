@@ -10,7 +10,7 @@ router.post(
     body('name').notEmpty(),
     body('email').isEmail(),
     body('password').isLength({ min: 6 }),
-    body('role').optional().isIn(['admin', 'doctor', 'patient']),
+    body('role').optional().isIn(['admin', 'doctor', 'user']),
   ],
   register
 );

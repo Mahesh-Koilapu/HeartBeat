@@ -1,7 +1,7 @@
 const { validationResult } = require('express-validator');
 const DoctorProfile = require('../models/DoctorProfile');
 const Appointment = require('../models/Appointment');
-const PatientProfile = require('../models/PatientProfile');
+const UserProfile = require('../models/UserProfile');
 const { User } = require('../models/User');
 
 const listDoctors = async (req, res) => {
@@ -52,25 +52,25 @@ const createAppointment = async (req, res) => {
 
   try {
     const {
-      doctorId,
       diseaseCategory,
       symptoms,
+      details,
       preferredDate,
-      scheduledDate,
-      scheduledStart,
-      scheduledEnd,
+      preferredStart,
+      preferredEnd,
+      documents,
     } = req.body;
 
     const appointment = await Appointment.create({
-      patient: req.user._id,
-      doctor: doctorId,
+      user: req.user._id,
       diseaseCategory,
       symptoms,
+      details,
       preferredDate,
-      scheduledDate,
-      scheduledStart,
-      scheduledEnd,
-      status: doctorId ? 'confirmed' : 'pending',
+      preferredStart,
+      preferredEnd,
+      status: 'pending',
+      documents,
       createdBy: req.user._id,
     });
 
@@ -82,7 +82,7 @@ const createAppointment = async (req, res) => {
 
 const listAppointments = async (req, res) => {
   try {
-    const appointments = await Appointment.find({ patient: req.user._id })
+    const appointments = await Appointment.find({ user: req.user._id })
       .populate('doctor', 'name email role')
       .sort({ createdAt: -1 });
 
@@ -97,14 +97,14 @@ const updateAppointment = async (req, res) => {
   const { action, reason, newDate, newStart, newEnd } = req.body;
 
   try {
-    const appointment = await Appointment.findOne({ _id: appointmentId, patient: req.user._id });
+    const appointment = await Appointment.findOne({ _id: appointmentId, user: req.user._id });
     if (!appointment) {
       return res.status(404).json({ message: 'Appointment not found' });
     }
 
     if (action === 'cancel') {
       appointment.status = 'cancelled';
-      appointment.cancellationReason = reason || 'Cancelled by patient';
+      appointment.cancellationReason = reason || 'Cancelled by user';
     }
 
     if (action === 'reschedule') {
@@ -112,7 +112,7 @@ const updateAppointment = async (req, res) => {
         previousDate: appointment.scheduledDate || appointment.preferredDate,
         newDate,
         reason,
-        requestedBy: 'patient',
+        requestedBy: 'user',
       });
       appointment.status = 'rescheduled';
       appointment.scheduledDate = newDate;
@@ -132,11 +132,11 @@ const updateAppointment = async (req, res) => {
 const getDashboardOverview = async (req, res) => {
   try {
     const [upcoming, history] = await Promise.all([
-      Appointment.find({ patient: req.user._id, status: { $in: ['pending', 'confirmed', 'rescheduled'] } })
+      Appointment.find({ user: req.user._id, status: { $in: ['pending', 'confirmed', 'rescheduled'] } })
         .populate('doctor', 'name email')
         .sort({ scheduledDate: 1 })
         .limit(10),
-      Appointment.find({ patient: req.user._id, status: 'completed' })
+      Appointment.find({ user: req.user._id, status: 'completed' })
         .populate('doctor', 'name email')
         .sort({ updatedAt: -1 })
         .limit(10),
@@ -174,7 +174,7 @@ const getDoctorProfile = async (req, res) => {
 const getProfile = async (req, res) => {
   try {
     const user = await User.findById(req.user._id).select('-password');
-    const profile = await PatientProfile.findOne({ user: req.user._id });
+    const profile = await UserProfile.findOne({ user: req.user._id });
 
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
@@ -208,7 +208,7 @@ const updateProfile = async (req, res) => {
 
     const [user, profile] = await Promise.all([
       name ? User.findByIdAndUpdate(req.user._id, { name }, { new: true }) : User.findById(req.user._id),
-      PatientProfile.findOneAndUpdate(
+      UserProfile.findOneAndUpdate(
         { user: req.user._id },
         { $set: updates },
         { new: true, upsert: true }

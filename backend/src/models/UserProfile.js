@@ -9,7 +9,7 @@ const emergencyContactSchema = new mongoose.Schema(
   { _id: false }
 );
 
-const patientProfileSchema = new mongoose.Schema(
+const userProfileSchema = new mongoose.Schema(
   {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
     age: Number,
@@ -29,4 +29,4 @@ const patientProfileSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model('PatientProfile', patientProfileSchema);
+module.exports = mongoose.model('UserProfile', userProfileSchema);

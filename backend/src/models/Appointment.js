@@ -5,7 +5,7 @@ const rescheduleSchema = new mongoose.Schema(
     previousDate: Date,
     newDate: Date,
     reason: String,
-    requestedBy: { type: String, enum: ['patient', 'doctor', 'admin'] },
+    requestedBy: { type: String, enum: ['user', 'doctor', 'admin'] },
     actionedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     actionedAt: { type: Date, default: Date.now },
   },
@@ -15,7 +15,7 @@ const rescheduleSchema = new mongoose.Schema(
 const noteSchema = new mongoose.Schema(
   {
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-    role: { type: String, enum: ['doctor', 'patient', 'admin', 'system'] },
+    role: { type: String, enum: ['doctor', 'user', 'admin', 'system'] },
     content: String,
     createdAt: { type: Date, default: Date.now },
   },
@@ -33,11 +33,14 @@ const prescriptionSchema = new mongoose.Schema(
 
 const appointmentSchema = new mongoose.Schema(
   {
-    patient: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     doctor: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     diseaseCategory: { type: String, required: true, trim: true },
     symptoms: { type: String, trim: true },
+    details: { type: String, trim: true },
     preferredDate: { type: Date, required: true },
+    preferredStart: { type: String },
+    preferredEnd: { type: String },
     scheduledDate: { type: Date },
     scheduledStart: { type: String },
     scheduledEnd: { type: String },
@@ -50,9 +53,19 @@ const appointmentSchema = new mongoose.Schema(
     rescheduleHistory: [rescheduleSchema],
     notes: [noteSchema],
     prescriptions: [prescriptionSchema],
+    documents: [
+      {
+        label: String,
+        url: String,
+        uploadedAt: { type: Date, default: Date.now },
+      },
+    ],
     followUpDate: Date,
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    assignedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    confirmationMessage: String,
+    confirmationSentAt: Date,
   },
   { timestamps: true }
 );
